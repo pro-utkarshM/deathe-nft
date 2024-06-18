@@ -24,7 +24,7 @@ pub fn contract_cw20() -> Box<dyn Contract<Empty>> {
     Box::new(contract)
 }
 
-pub fn FractionalNftContract() -> Box<dyn Contract<Empty>> {
+pub fn fractional_nft_contract() -> Box<dyn Contract<Empty>> {
     let contract = ContractWrapper::new(
         crate::contract::entry_points::execute,
         crate::contract::entry_points::instantiate,
@@ -75,8 +75,8 @@ fn setup_contracts() -> App {
         .instantiate_contract(cw20_id, admin.clone(), &msg, &[], "BAD_CW20", None)
         .unwrap();
 
-    // Set up Frac721 contract
-    let frac721_id = router.store_code(FractionalNftContract());
+    // Set up Fractional-721 contract
+    let frac721_id = router.store_code(fractional_nft_contract());
     let msg = crate::contract::InstantiateMsg {
         collection_address: cw721_addr.to_string(),
         cw20_config: None,
