@@ -171,3 +171,55 @@ fn try_deposit() {
     let res: cw20::BalanceResponse = router.wrap().query_wasm_smart(CW20, &msg).unwrap();
     assert_eq!(res.balance, Uint128::new(1000000u128));
 }
+
+
+#[test]
+fn try_claim() {
+    let mut router = setup_contracts();
+
+    let user = Addr::unchecked(USER);
+    let contract = Addr::unchecked(FRAC721);
+    let token_id = "1";
+
+    // Mint a CW721 NFT to the user
+    mint_cw721(&mut router, user.clone(), token_id);
+
+    // Send the NFT to the Frac721 contract
+    send_cw721(&mut router, user.clone(), contract.clone(), token_id);
+
+    // Query the CW20 balance of the user
+    let msg = cw20_base::msg::QueryMsg::Balance {
+        address: user.to_string(),
+    };
+
+    let res: cw20::BalanceResponse = router.wrap().query_wasm_smart(CW20, &msg).unwrap();
+    assert_eq!(res.balance, Uint128::new(1000000u128));
+
+    // Send a CW20 token to the contract
+    let msg = cw20_base::msg::ExecuteMsg::Send {
+        contract: contract.to_string(),
+        amount: Uint128::new(1000000u128),
+        msg: b"{\"token_id\":\"1\"}".to_vec().into(),
+    };
+
+    router
+        .execute_contract(user.clone(), Addr::unchecked(CW20), &msg, &[])
+        .unwrap();
+
+    // Query the CW20 balance of the user
+    let msg = cw20_base::msg::QueryMsg::Balance {
+        address: user.to_string(),
+    };
+
+    let res: cw20::BalanceResponse = router.wrap().query_wasm_smart(CW20, &msg).unwrap();
+    assert_eq!(res.balance, Uint128::new(0u128));
+
+    // Verify that the user now owns the NFT
+    let msg: cw721_base::QueryMsg<Empty> = cw721_base::msg::QueryMsg::OwnerOf {
+        token_id: token_id.to_string(),
+        include_expired: None,
+    };
+
+    let res: cw721::OwnerOfResponse = router.wrap().query_wasm_smart(CW721, &msg).unwrap();
+    assert_eq!(res.owner, user.to_string());
+}
