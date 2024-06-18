@@ -116,3 +116,19 @@ fn mint_cw721(router: &mut App, addr: Addr, token_id: &str) {
 fn proper_initialization() {
     setup_contracts();
 }
+
+const CW721: &str = "contract0";
+const CW20: &str = "contract1";
+const FRAC721: &str = "contract2";
+
+const ADMIN: &str = "admin";
+
+
+#[test]
+fn try_query_config() {
+    let router = setup_contracts();
+    let msg = crate::contract::QueryMsg::Config {};
+    let res: crate::msg::ConfigResponse = router.wrap().query_wasm_smart(FRAC721, &msg).unwrap();
+    assert_eq!(res.collection_address, CW721.to_string());
+    assert_eq!(res.cw20_address.unwrap(), CW20.to_string());
+}
