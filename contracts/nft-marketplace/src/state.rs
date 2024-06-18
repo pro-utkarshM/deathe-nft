@@ -1,9 +1,10 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, BlockInfo, Coin};
 use cw721::Expiration;
-use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex, UniqueIndex};
+use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex, UniqueIndex, Map};
 use serde::{Deserialize, Serialize};
 use cosmwasm_std::Uint128;
+// use core::iter::Map;
 
 use crate::order_state::{orders, OfferIndexes, OrderComponents, OrderKey};
 
@@ -149,5 +150,8 @@ pub struct FractionalOwnership {
     pub shares: Uint128,
     pub price_per_share: Uint128,
 }
+// pub const CONFIG: Item<Config> = Item::new("config");
+// pub const FRACTIONAL_OWNERSHIP: Map<(Addr, String), FractionalOwnership> = Map::new("fractional_ownership");
+
 pub const CONFIG: Item<Config> = Item::new("config");
-pub const FRACTIONAL_OWNERSHIP: Item<(Addr, String)> = Item::new("fractional_ownership");
+pub const FRACTIONAL_OWNERSHIP: Map<(Addr, String), FractionalOwnership> = Map::new("fractional_ownership");

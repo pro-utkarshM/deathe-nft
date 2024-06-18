@@ -58,7 +58,7 @@ pub fn execute(
             token_id,
             shares,
             price_per_share,
-        } => contract.execute_list_fractional_nft(
+        } => contract().execute_list_fractional_nft(
             deps, 
             _env, 
             info, 
@@ -71,7 +71,7 @@ pub fn execute(
             contract_address,
             token_id,
             shares,
-        } => contract.execute_buy_fractional_nft(
+        } => contract().execute_buy_fractional_nft(
             deps,
             _env, 
             info, 
