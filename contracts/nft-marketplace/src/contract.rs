@@ -1,6 +1,6 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
@@ -106,12 +106,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     let api = deps.api;
     match msg {
         // get config
-        QueryMsg::Config {} => to_binary(&contract().config.load(deps.storage)?),
+        QueryMsg::Config {} => to_json_binary(&contract().config.load(deps.storage)?),
         QueryMsg::ListingsByContractAddress {
             contract_address,
             start_after,
             limit,
-        } => to_binary(&contract().query_listings_by_contract_address(
+        } => to_json_binary(&contract().query_listings_by_contract_address(
             deps,
             api.addr_validate(&contract_address)?,
             start_after,
@@ -120,7 +120,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Listing {
             contract_address,
             token_id,
-        } => to_binary(&contract().query_listing(
+        } => to_json_binary(&contract().query_listing(
             deps,
             api.addr_validate(&contract_address)?,
             token_id,
@@ -129,7 +129,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             contract_address,
             token_id,
             offerer,
-        } => to_binary(&contract().query_offer(
+        } => to_json_binary(&contract().query_offer(
             deps,
             api.addr_validate(&contract_address)?,
             token_id,
@@ -140,7 +140,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             token_id,
             start_after_offerer,
             limit,
-        } => to_binary(&contract().query_nft_offers(
+        } => to_json_binary(&contract().query_nft_offers(
             deps,
             Addr::unchecked(contract_address),
             token_id,
@@ -151,7 +151,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             offerer,
             start_after_nft,
             limit,
-        } => to_binary(&contract().query_user_offers(
+        } => to_json_binary(&contract().query_user_offers(
             deps,
             api.addr_validate(&offerer)?,
             start_after_nft,

@@ -7,7 +7,7 @@ use crate::{
     ContractError,
 };
 use cosmwasm_std::{
-    to_binary, Addr, BankMsg, Coin, CosmosMsg, DepsMut, Env, MessageInfo, QueryRequest, Response,
+    to_json_binary, Addr, BankMsg, Coin, CosmosMsg, DepsMut, Env, MessageInfo, QueryRequest, Response,
     StdResult, Uint128, WasmMsg, WasmQuery,
 };
 use cw20::{AllowanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
@@ -58,7 +58,7 @@ impl MarketplaceContract<'static> {
         let owner_response: StdResult<cw721::OwnerOfResponse> =
             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: contract_address.to_string(),
-                msg: to_binary(&query_owner_msg)?,
+                msg: to_json_binary(&query_owner_msg)?,
             }));
         match owner_response {
             Ok(owner) => {
@@ -81,7 +81,7 @@ impl MarketplaceContract<'static> {
         let approval_response: StdResult<cw721::ApprovalResponse> =
             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: contract_address.to_string(),
-                msg: to_binary(&query_approval_msg)?,
+                msg: to_json_binary(&query_approval_msg)?,
             }));
 
         // check if approval is never expired
@@ -200,7 +200,7 @@ impl MarketplaceContract<'static> {
                 // message to transfer nft to buyer
                 let transfer_nft_msg = WasmMsg::Execute {
                     contract_addr: listing.contract_address.to_string(),
-                    msg: to_binary(&Cw2981ExecuteMsg::TransferNft {
+                    msg: to_json_binary(&Cw2981ExecuteMsg::TransferNft {
                         recipient: listing.buyer.clone().unwrap().into_string(),
                         token_id: listing.token_id.clone(),
                     })?,
@@ -508,7 +508,7 @@ impl MarketplaceContract<'static> {
                     // message to transfer nft to offerer
                     let transfer_nft_msg = WasmMsg::Execute {
                         contract_addr: contract_address.clone().to_string(),
-                        msg: to_binary(&Cw2981ExecuteMsg::TransferNft {
+                        msg: to_json_binary(&Cw2981ExecuteMsg::TransferNft {
                             recipient: order_components.offerer.clone().to_string(),
                             token_id: token_id.clone().unwrap(),
                         })?,
@@ -639,7 +639,7 @@ impl MarketplaceContract<'static> {
         let royalty_info_rsp: Result<RoyaltiesInfoResponse, cosmwasm_std::StdError> =
             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: nft_contract_address.to_string(),
-                msg: to_binary(&royalty_query_msg).unwrap(),
+                msg: to_json_binary(&royalty_query_msg).unwrap(),
             }));
 
         let (creator, royalty_amount): (Option<Addr>, Option<Uint128>) = match royalty_info_rsp {
@@ -670,7 +670,7 @@ impl MarketplaceContract<'static> {
                     // execute cw20 transfer msg from info.sender to recipient
                     let transfer_response = WasmMsg::Execute {
                         contract_addr: deps.api.addr_validate(&token_info).unwrap().to_string(),
-                        msg: to_binary(&Cw20ExecuteMsg::TransferFrom {
+                        msg: to_json_binary(&Cw20ExecuteMsg::TransferFrom {
                             owner: sender.to_string(),
                             recipient: recipient.to_string(),
                             amount,
@@ -698,7 +698,7 @@ impl MarketplaceContract<'static> {
                     // execute cw20 transfer transfer royalty to creator
                     let transfer_token_creator_response = WasmMsg::Execute {
                         contract_addr: deps.api.addr_validate(&token_info).unwrap().to_string(),
-                        msg: to_binary(&Cw20ExecuteMsg::TransferFrom {
+                        msg: to_json_binary(&Cw20ExecuteMsg::TransferFrom {
                             owner: sender.to_string(),
                             recipient: creator.to_string(),
                             amount: royalty_amount,
@@ -711,7 +711,7 @@ impl MarketplaceContract<'static> {
                     // execute cw20 transfer remaining funds to recipient
                     let transfer_token_seller_msg = WasmMsg::Execute {
                         contract_addr: deps.api.addr_validate(&token_info).unwrap().to_string(),
-                        msg: to_binary(&Cw20ExecuteMsg::TransferFrom {
+                        msg: to_json_binary(&Cw20ExecuteMsg::TransferFrom {
                             owner: sender.to_string(),
                             recipient: recipient.to_string(),
                             amount: amount - royalty_amount,

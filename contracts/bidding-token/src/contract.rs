@@ -1,7 +1,7 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    attr, to_binary, Addr, BankMsg, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response,
+    attr, to_json_binary, Addr, BankMsg, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response,
     StdError, StdResult, Uint128,
 };
 
@@ -120,9 +120,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             let marketplace_info = MARKETPLACE_INFO.load(deps.storage)?;
             if spender == marketplace_info.contract_address {
                 // if spender is marketplace contract, return cap of minter
-                to_binary(&marketplace_query_allowance(deps)?)
+                to_json_binary(&marketplace_query_allowance(deps)?)
             } else {
-                to_binary(&query_allowance(deps, owner, spender)?)
+                to_json_binary(&query_allowance(deps, owner, spender)?)
             }
         }
         _ => cw20_query(deps, env, msg),
