@@ -1,125 +1,115 @@
-# NFT Marketplace Contract
+---
 
-The marketplace supports buy and sell of NFTs of cw721-compatible contracts. It also takes royalties for sales as specified in [cw2981-royalties](https://github.com/CosmWasm/cw-nfts/tree/main/contracts/cw2981-royalties).
+# NFT Marketplace Smart Contract
 
-## Interface
+This repository contains a smart contract for a Non-Fungible Token (NFT) marketplace on the Cosmos SDK using CosmWasm. The contract allows for fractional ownership and trading of NFTs within a decentralized application (dApp).
 
-### ExecuteMsg
+## Features
 
-#### List an NFT for sale
+- **Fractional Ownership**: Allows NFTs to be owned by multiple users, each owning a fraction of the NFT.
+- **Listing and Buying**: Users can list their NFTs for fractional ownership and buy shares of listed NFTs.
+- **Cancellation**: Owners can cancel their listings and remove their NFTs from the marketplace.
+- **Customizable Configurations**: Configurable owner addresses and other parameters via contract initialization.
 
-To list an NFT for sale, the contract will check:
-- sender is owner of the NFT,
-- the contract is approved to use the NFT,
-- the listing configuration is correct.
+## Components
 
-Current supported configuration is: 
+The project consists of the following components:
+
+- **Smart Contract (`nft-marketplace`)**: Contains the main logic for managing fractional ownership and transactions of NFTs.
+- **Supporting Contracts (`deauthe`, `bidding-token`)**: Other contracts utilized within the ecosystem (optional).
+
+## Getting Started
+
+To build and deploy the smart contract, follow these steps:
+
+### Prerequisites
+
+- Rust (nightly) and Cargo: Install using [rustup](https://rustup.rs/).
+- CosmWasm: Install using Cargo with `cargo install --version=0.14.0 cosmwasm-cli`.
+
+### Build
+
+1. Clone the repository:
+
+   ```bash
+   git clone <repository_url>
+   cd nft-marketplace
+   ```
+
+2. Build the project:
+
+   ```bash
+   cargo build
+   ```
+
+### Deploy
+
+To deploy the contract, you'll need to follow the CosmWasm deployment process. Ensure you have your chain configured and initialized appropriately.
+
+### Usage
+
+Provide instructions on how to use the smart contract. For example:
+
+#### Listing an NFT for Fractional Ownership
+
+To list an NFT for fractional ownership:
+
 ```rust
-{
-    "price": {
-        "amount": number,
-        "denom": SupportedDenom
-    },
-    "start_time": Option<Timestamp>,
-    "end_time": Option<Timestamp>
-}
-```
-We are currently only support the native asset of the deployed chain, but support for other tokens as well as cw20 is being developed.
-Both `start_time` and `end_time` is optional. If `start_time` is presented, it must be after current block time.
-If `end_time` is presented, it must be after `max(start_time, current_block_time)`.
+// Example Rust code snippet
+use nft_marketplace::{MarketplaceContract, ContractError};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Addr, Uint128};
 
-Transaction message format:
-```json
-{
-    "list_nft": {
-        "contract_address": "the nft contract address",
-        "token_id": "the nft token id",
-        "auction_config": "the listing config"
-    }
-}
-```
+let contract = MarketplaceContract::default();
+let mut deps: DepsMut = ...; // Initialize CosmWasm dependencies
 
-Noted that if the NFT is transferred to another address, its listing will be invalid.
+let contract_address: Addr = ...; // Address of the NFT contract
+let token_id: String = ...; // ID of the NFT
+let shares: Uint128 = Uint128::from(100); // Number of shares
+let price_per_share: Uint128 = Uint128::from(1000); // Price per share
 
-#### Buy a listed NFT
+let info: MessageInfo = ...; // Information of the sender
 
-To buy a listed NFT, simply call `buy_nft` message:
-```json
-{
-    "buy_nft": {
-        "contract_address": "the nft contract address",
-        "token_id": "the nft token id"
-    }
-}
+let response: Result<Response, ContractError> = contract.execute_list_fractional_nft(
+    deps.as_mut(),
+    Env::default(),
+    info,
+    contract_address,
+    token_id,
+    shares,
+    price_per_share,
+);
+
 ```
 
-Depends on the required configuration, the contract will check for attached funds or use a `transfer_from` message to transfer asset from buyer to seller.
+#### Buying Fractional Ownership
 
-#### Cancel a listing
+To buy shares of an NFT:
 
-Owner of a listing can cancel that listing at any time. Transaction message format:
+```rust
+// Example Rust code snippet
+use nft_marketplace::{MarketplaceContract, ContractError};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Addr, Uint128};
 
-```json
-{
-    "cancel": {
-        "contract_address": "the nft contract address",
-        "token_id": "the nft token id"
-    }
-}
+let contract = MarketplaceContract::default();
+let mut deps: DepsMut = ...; // Initialize CosmWasm dependencies
+
+let contract_address: Addr = ...; // Address of the NFT contract
+let token_id: String = ...; // ID of the NFT
+let shares: Uint128 = Uint128::from(50); // Number of shares to buy
+
+let info: MessageInfo = ...; // Information of the sender
+
+let response: Result<Response, ContractError> = contract.execute_buy_fractional_nft(
+    deps.as_mut(),
+    Env::default(),
+    info,
+    contract_address,
+    token_id,
+    shares,
+);
+
 ```
 
-#### Offer to buy an NFT
+### Contributing
 
-Users can offer to buy NFTs from other users. We require offerers to use cw20 token to offer so that in the case the offer is accepted, the marketplace contract can automatically transfer both the NFT to the offerer and tokens to the NFT owner. For safety reasons, we do not lock offerer's token so there can be cases when an offer is accepted but the offerer doesn't have enough tokens which makes the offer invalid. We expect the marketplace frontend will take care of this case and notify NFT owners. At the moment, we use our [bidding-token](../bidding-token/README.md) for this feature.
-
-Offer message format:
-```json
-{
-    "offer_nft": {
-        "nft": {
-            "contract_address": "the nft contract address",
-            "token_id": "the nft token id"
-        },
-        "funds_amount": 1234,
-        "end_time": "expiration time"
-    }
-}
-```
-
-The expiration time is defined in [cw721](https://docs.rs/cw721/latest/cw721/enum.Expiration.html).
-
-Noted that we require the uniqueness of the tuple `(nft, offerer)`. If an offerer makes multiple offers for the same NFT, only the last offer is stored.
-
-#### Accept an offer
-
-Owner of an NFT can accept an offer for that NFT. Transaction message format:
-```json
-{
-    "accept_nft_offer": {
-        "offerer": "the offerer address",
-        "nft": {
-            "contract_address": "the nft contract address",
-            "token_id": "the nft token id"
-        }, 
-        "funds_amount": 1234
-    }
-}
-```
-
-The `funds_amount` is required for prevent front-running by offerer.
-
-#### Cancel an offer
-
-Offerers can cancel their offers at any time. Transaction message format:
-```json
-{
-    "cancel_offer": {
-        "nfts": [
-            {
-                "contract_address": "the nft contract address",
-                "token_id": "the nft token id"
-            }
-        ]
-    }
-}
-```
+Contributions are welcome! Please fork the repository and submit a pull request with your changes.
