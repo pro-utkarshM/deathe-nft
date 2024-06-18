@@ -2,9 +2,11 @@ use crate::order_state::{
     consideration_item, offer_item, order_key, Asset, ItemType, OrderComponents, OrderType,
     PaymentAsset, CW20, NFT,
 };
+use crate::state::{FractionalOwnership, FRACTIONAL_OWNERSHIP, Config, CONFIG};
+// use crate::state::FractionalOwnership;
 use crate::{
     state::{listing_key, AuctionConfig, Listing, MarketplaceContract},
-    ContractError,
+    ContractError, 
 };
 use cosmwasm_std::{
     to_json_binary, Addr, BankMsg, Coin, CosmosMsg, DepsMut, Env, MessageInfo, QueryRequest, Response,
@@ -40,6 +42,62 @@ impl MarketplaceContract<'static> {
             }
         }
     }
+    pub fn execute_list_fractional_nft(
+        &self,
+        deps: DepsMut,
+        _env: Env,
+        info: MessageInfo,
+        contract_address: Addr,
+        token_id: String,
+        shares: Uint128,
+        price_per_share: Uint128,
+    ) -> Result<Response, ContractError> {
+        let ownership = FractionalOwnership {
+            owner: info.sender.clone(),
+            shares,
+            price_per_share,
+        };
+        FRACTIONAL_OWNERSHIP.save(deps.storage, (contract_address.clone(), token_id.clone()), &ownership)?;
+
+        Ok(Response::new()
+            .add_attribute("method", "list_fractional_nft")
+            .add_attribute("owner", info.sender)
+            .add_attribute("contract_address", contract_address)
+            .add_attribute("token_id", token_id)
+            .add_attribute("shares", shares.to_string())
+            .add_attribute("price_per_share", price_per_share.to_string()))
+    }
+
+
+    pub fn execute_buy_fractional_nft(
+        &self,
+        deps: DepsMut,
+        _env: Env,
+        info: MessageInfo,
+        contract_address: Addr,
+        token_id: String,
+        shares: Uint128,
+    ) -> Result<Response, ContractError> {
+        let mut ownership = FRACTIONAL_OWNERSHIP.load(deps.storage, (contract_address.clone(), token_id.clone()))?;
+        if ownership.shares < shares {
+            return Err(ContractError::InsufficientFunds {});
+        }
+
+        ownership.shares -= shares;
+        if ownership.shares.is_zero() {
+            FRACTIONAL_OWNERSHIP.remove(deps.storage, (contract_address.clone(), token_id.clone()));
+        } else {
+            FRACTIONAL_OWNERSHIP.save(deps.storage, (contract_address.clone(), token_id.clone()), &ownership)?;
+        }
+
+        Ok(Response::new()
+            .add_attribute("method", "buy_fractional_nft")
+            .add_attribute("buyer", info.sender)
+            .add_attribute("contract_address", contract_address)
+            .add_attribute("token_id", token_id)
+            .add_attribute("shares", shares.to_string()))
+    }
+
 
     pub fn execute_list_nft(
         self,

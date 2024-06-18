@@ -38,6 +38,7 @@ cw721 = "0.16.0"
 cw721-base = { version = "0.16.0", features = ["library"] }
 cw2981-royalties = "0.18.0"
 serde_json = "1.0.89"
+serde = "1.0.180"
 cw-utils = "1.0.0"
 cosmwasm-schema = "1.1.9"
 cw20 = "1.0.1"

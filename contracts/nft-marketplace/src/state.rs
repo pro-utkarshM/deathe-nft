@@ -2,6 +2,8 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, BlockInfo, Coin};
 use cw721::Expiration;
 use cw_storage_plus::{Index, IndexList, IndexedMap, Item, MultiIndex, UniqueIndex};
+use serde::{Deserialize, Serialize};
+use cosmwasm_std::Uint128;
 
 use crate::order_state::{orders, OfferIndexes, OrderComponents, OrderKey};
 
@@ -140,3 +142,12 @@ impl Default for MarketplaceContract<'static> {
 pub fn contract() -> MarketplaceContract<'static> {
     MarketplaceContract::default()
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub struct FractionalOwnership {
+    pub owner: Addr,
+    pub shares: Uint128,
+    pub price_per_share: Uint128,
+}
+pub const CONFIG: Item<Config> = Item::new("config");
+pub const FRACTIONAL_OWNERSHIP: Item<(Addr, String)> = Item::new("fractional_ownership");

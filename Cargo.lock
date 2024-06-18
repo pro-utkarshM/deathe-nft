@@ -936,6 +936,7 @@ dependencies = [
  "cw721 0.16.0",
  "cw721-base 0.16.0",
  "semver",
+ "serde",
  "serde_json",
  "thiserror",
 ]

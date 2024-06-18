@@ -2,6 +2,7 @@
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
+use crate::state::{FractionalOwnership, FRACTIONAL_OWNERSHIP};
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
@@ -52,6 +53,33 @@ pub fn execute(
             token_id,
             auction_config,
         ),
+        ExecuteMsg::ListFractionalNft {
+            contract_address,
+            token_id,
+            shares,
+            price_per_share,
+        } => contract.execute_list_fractional_nft(
+            deps, 
+            _env, 
+            info, 
+            contract_address, 
+            token_id, 
+            shares, 
+            price_per_share
+        ),
+        ExecuteMsg::BuyFractionalNft {
+            contract_address,
+            token_id,
+            shares,
+        } => contract.execute_buy_fractional_nft(
+            deps,
+            _env, 
+            info, 
+            contract_address, 
+            token_id, 
+            shares
+        ),
+
         ExecuteMsg::Buy {
             contract_address,
             token_id,
@@ -159,3 +187,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         )?),
     }
 }
+
+
+pub fn query_fractional_ownership(deps: DepsMut, contract_address: Addr, token_id: String) -> StdResult<FractionalOwnership> {
+    let ownership = FRACTIONAL_OWNERSHIP.load(deps.storage, (contract_address, token_id))?;
+    Ok(ownership)
+}
+

@@ -1,6 +1,7 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::Addr;
 use cw721::Expiration;
+use cosmwasm_std::Uint128;
 
 use crate::{
     order_state::{OrderComponents, NFT},
@@ -19,6 +20,19 @@ pub enum ExecuteMsg {
         contract_address: String,
         token_id: String,
         auction_config: AuctionConfig,
+    },
+    // List a fractional NFT for sale
+    ListFractionalNft {
+        contract_address: Addr,
+        token_id: String,
+        shares: Uint128,
+        price_per_share: Uint128,
+    },
+    // Buy a fractional NFT
+    BuyFractionalNft {
+        contract_address: Addr,
+        token_id: String,
+        shares: Uint128,
     },
     // Buy a listed NFT
     Buy {
