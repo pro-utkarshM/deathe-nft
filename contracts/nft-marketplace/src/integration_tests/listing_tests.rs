@@ -7,7 +7,7 @@ use crate::ContractError;
 
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier};
 use cosmwasm_std::{
-    coins, from_binary, to_binary, Addr, BankMsg, Coin, ContractResult, CosmosMsg, DepsMut,
+    coins, from_binary, to_json_binary, Addr, BankMsg, Coin, ContractResult, CosmosMsg, DepsMut,
     MemoryStorage, OwnedDeps, Response, StdError, StdResult, SubMsg, Timestamp, Uint128, WasmMsg,
     WasmQuery,
 };
@@ -58,7 +58,7 @@ fn mock_deps() -> OwnedDeps<MemoryStorage, MockApi, MockQuerier> {
                                                 royalty_amount: 10u128.into(),
                                             };
                                             let result = ContractResult::Ok(
-                                                to_binary(&royalty_info).unwrap(),
+                                                to_json_binary(&royalty_info).unwrap(),
                                             );
                                             cosmwasm_std::SystemResult::Ok(result)
                                         }
@@ -69,7 +69,7 @@ fn mock_deps() -> OwnedDeps<MemoryStorage, MockApi, MockQuerier> {
                                                 royalty_amount: 0u128.into(),
                                             };
                                             let result = ContractResult::Ok(
-                                                to_binary(&royalty_info).unwrap(),
+                                                to_json_binary(&royalty_info).unwrap(),
                                             );
                                             cosmwasm_std::SystemResult::Ok(result)
                                         }
@@ -80,7 +80,7 @@ fn mock_deps() -> OwnedDeps<MemoryStorage, MockApi, MockQuerier> {
                                                 royalty_amount: 10u128.into(),
                                             };
                                             let result = ContractResult::Ok(
-                                                to_binary(&royalty_info).unwrap(),
+                                                to_json_binary(&royalty_info).unwrap(),
                                             );
                                             cosmwasm_std::SystemResult::Ok(result)
                                         }
@@ -92,7 +92,7 @@ fn mock_deps() -> OwnedDeps<MemoryStorage, MockApi, MockQuerier> {
                                     }
                                 }
                                 Cw2981QueryMsg::CheckRoyalties {} => {
-                                    let result = ContractResult::Ok(to_binary(&true).unwrap());
+                                    let result = ContractResult::Ok(to_json_binary(&true).unwrap());
                                     cosmwasm_std::SystemResult::Ok(result)
                                 }
                             }
@@ -103,7 +103,7 @@ fn mock_deps() -> OwnedDeps<MemoryStorage, MockApi, MockQuerier> {
                             include_expired: _,
                         } => {
                             let result = ContractResult::Ok(
-                                to_binary(&ApprovalResponse {
+                                to_json_binary(&ApprovalResponse {
                                     approval: Approval {
                                         spender: "owner".to_string(),
                                         expires: Cw721Expiration::Never {},
@@ -123,7 +123,7 @@ fn mock_deps() -> OwnedDeps<MemoryStorage, MockApi, MockQuerier> {
                             } else {
                                 // just return owner
                                 let result = ContractResult::Ok(
-                                    to_binary(&OwnerOfResponse {
+                                    to_json_binary(&OwnerOfResponse {
                                         owner: "owner".to_string(),
                                         approvals: vec![],
                                     })
@@ -145,7 +145,7 @@ fn mock_deps() -> OwnedDeps<MemoryStorage, MockApi, MockQuerier> {
                         cw20_base::msg::QueryMsg::Balance { address, .. } => {
                             if address == MOCK_OFFER_NFT_OFFERER_INSUFFICIENT_BALANCE {
                                 let result = ContractResult::Ok(
-                                    to_binary(&cw20::BalanceResponse {
+                                    to_json_binary(&cw20::BalanceResponse {
                                         balance: Uint128::from(MOCK_OFFER_CW20_AMOUNT_MINIMUM),
                                     })
                                     .unwrap(),
@@ -153,7 +153,7 @@ fn mock_deps() -> OwnedDeps<MemoryStorage, MockApi, MockQuerier> {
                                 cosmwasm_std::SystemResult::Ok(result)
                             } else {
                                 let result = ContractResult::Ok(
-                                    to_binary(&cw20::BalanceResponse {
+                                    to_json_binary(&cw20::BalanceResponse {
                                         balance: Uint128::from(MOCK_OFFER_CW20_AMOUNT),
                                     })
                                     .unwrap(),
@@ -164,7 +164,7 @@ fn mock_deps() -> OwnedDeps<MemoryStorage, MockApi, MockQuerier> {
                         cw20_base::msg::QueryMsg::Allowance { owner, spender: _ } => {
                             if owner == MOCK_OFFER_NFT_OFFERER_INSUFFICIENT_ALLOWANCE {
                                 let result = ContractResult::Ok(
-                                    to_binary(&cw20::AllowanceResponse {
+                                    to_json_binary(&cw20::AllowanceResponse {
                                         allowance: Uint128::from(MOCK_OFFER_CW20_AMOUNT_MINIMUM),
                                         expires: Cw20Expiration::Never {},
                                     })
@@ -173,7 +173,7 @@ fn mock_deps() -> OwnedDeps<MemoryStorage, MockApi, MockQuerier> {
                                 cosmwasm_std::SystemResult::Ok(result)
                             } else {
                                 let result = ContractResult::Ok(
-                                    to_binary(&cw20::AllowanceResponse {
+                                    to_json_binary(&cw20::AllowanceResponse {
                                         allowance: Uint128::from(MOCK_OFFER_CW20_AMOUNT),
                                         expires: Cw20Expiration::Never {},
                                     })
@@ -652,7 +652,7 @@ mod listing {
             SubMsg::new(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: MOCK_CW2981_ADDR.to_string(),
                 funds: vec![],
-                msg: to_binary(&Cw2981ExecuteMsg::TransferNft {
+                msg: to_json_binary(&Cw2981ExecuteMsg::TransferNft {
                     recipient: "buyer".to_string(),
                     token_id: "1".to_string(),
                 })
@@ -775,7 +775,7 @@ mod listing {
             SubMsg::new(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: MOCK_CW2981_ADDR.to_string(),
                 funds: vec![],
-                msg: to_binary(&Cw2981ExecuteMsg::TransferNft {
+                msg: to_json_binary(&Cw2981ExecuteMsg::TransferNft {
                     recipient: "buyer".to_string(),
                     token_id: "2".to_string(),
                 })
@@ -822,7 +822,7 @@ mod listing {
             SubMsg::new(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: MOCK_CW2981_ADDR.to_string(),
                 funds: vec![],
-                msg: to_binary(&Cw2981ExecuteMsg::TransferNft {
+                msg: to_json_binary(&Cw2981ExecuteMsg::TransferNft {
                     recipient: "buyer".to_string(),
                     token_id: "2".to_string(),
                 })
@@ -869,7 +869,7 @@ mod listing {
             SubMsg::new(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: MOCK_CW2981_ADDR.to_string(),
                 funds: vec![],
-                msg: to_binary(&Cw2981ExecuteMsg::TransferNft {
+                msg: to_json_binary(&Cw2981ExecuteMsg::TransferNft {
                     recipient: "buyer".to_string(),
                     token_id: "3".to_string(),
                 })
@@ -1201,7 +1201,7 @@ mod convert_and_revert_native {
             address: cw20_address.to_string(),
             denom: NATIVE_DENOM.to_string(),
         });
-        let res = app.raw_query(&to_binary(&req).unwrap()).unwrap().unwrap();
+        let res = app.raw_query(&to_json_binary(&req).unwrap()).unwrap().unwrap();
         let balance: BankBalanceResponse = from_binary(&res).unwrap();
         assert_eq!(balance.amount.amount, Uint128::zero());
 
@@ -1237,7 +1237,7 @@ mod convert_and_revert_native {
             address: cw20_address,
             denom: NATIVE_DENOM.to_string(),
         });
-        let res = app.raw_query(&to_binary(&req).unwrap()).unwrap().unwrap();
+        let res = app.raw_query(&to_json_binary(&req).unwrap()).unwrap().unwrap();
         let balance: BankBalanceResponse = from_binary(&res).unwrap();
         assert_eq!(balance.amount.amount, Uint128::from(100000000u128));
     }

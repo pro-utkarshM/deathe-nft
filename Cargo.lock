@@ -456,18 +456,16 @@ dependencies = [
 
 [[package]]
 name = "cw2981-royalties"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "985cdd5d304fb37ff16c2538f4d8f12a264af6526b967e066c6bb6972d60ab92"
+version = "0.15.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
- "cw721 0.18.0",
- "cw721-base 0.18.0",
+ "cw721 0.16.0",
+ "cw721-base 0.16.0",
  "schemars",
  "serde",
- "thiserror",
 ]
 
 [[package]]
